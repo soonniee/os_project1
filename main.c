@@ -31,12 +31,8 @@ void push(Process *p,int which_queue){
     else head = Sleep_Queue;
     
     node->process = p;
-    // node->next = NULL;
+    
     int check = 0;
-    // if(head->next == NULL){
-    //     node->next = NULL;
-    //     head ->next = node; 
-    // }
     while(head->next!=NULL){
         Queue *temp =(Queue*)malloc(sizeof(Queue));
         temp = head;
@@ -79,9 +75,7 @@ void delete(Process *p,int which_queue){
         }
         
     }
-    // temp = head->next;
-    // head->next = temp->next;
-    // free(temp);
+    
 }
 void set_process(){
     
@@ -146,17 +140,7 @@ void set_process(){
 }
 
 int main(){
-   set_process();
-    for(int i=0;i<4;i++){
-                            Queue *h = (Queue*)malloc(sizeof(Queue));
-                            h = Ready_Queue[i];
-                            while(h->next!=NULL){
-                                
-                                h = h->next;
-                                printf("RQ%d : %d\n",i,h->process->pid);
-                            }
-     
-                         }
+    set_process();
     simulator();
     return 0;
 }
@@ -169,7 +153,6 @@ int arr_check(Process *p){
         return -1;
     } 
 }
-
 void wake_check(int num){
     int wake_priority=0;
     Queue *head = (Queue*)malloc(sizeof(Queue));
@@ -185,22 +168,19 @@ void wake_check(int num){
         if(arr_time + io_time <= global_time){
             head = temp;
             delete(p,1);
-            // printf("Wake : %d %d\n",p->pid,p->init_q);
+            
             if(p->init_q !=3) {
                 p->init_q -=1;
-                // printf("upqueue\n");
+                
             }
             p->arr_time += io_time;
-            // printf("arr_time : %d\n",p->arr_time);
+            
             p->cycle_index += 1;
-            // wake_priority = 1; 
+            
             push(p,0);
         }
-        // else{
-        //     p->arr_burst[index*2+1] = io_time - schedule_time;
-        // }
     }
-    // return wake_priority;
+    
 }
 void min_wakeup(){
     int wait_start_time =global_time;
@@ -221,13 +201,13 @@ void min_wakeup(){
                 head = temp;
                 check = 1;
                 delete(p,1);
-                // printf("Wake : %d %d\n",p->pid,p->init_q);
+                
                 if(p->init_q !=3) {
                     p->init_q -=1;
                     
                 }
                 p->arr_time += io_time;
-                // printf("arr_time : %d\n",p->arr_time);
+                
                 p->cycle_index += 1;
                  
                 push(p,0);
@@ -241,83 +221,48 @@ void min_wakeup(){
 }
 void simulator(){
     scheduling(Process_arr[0]->init_q,Process_arr[0]->cycle_index,Process_arr[0]);
-    
     int empty = 0;
     while(1){
+        if(empty == 1) min_wakeup();
         
-        if(empty == 1){
-            
-            min_wakeup();
-        }
         for(int i=0;i<4;i++){
             int wake=0;
             int sch = 0;
-            // if(i==3) break;
             while(1){
-                
                 Queue *head = (Queue*)malloc(sizeof(Queue));
                 head = Ready_Queue[i];
-                // printf("%d\n",Ready_Queue[i]->next->process->pid);
                 head = head ->next;
-                // printf("%d\n",head->process->pid);
                 if(head== NULL){
-                    
                     empty = 1;
                     break;
                 }
                 empty = 0;
-                // printf("%d\n",Ready_Queue[i]->next->process->pid);
                 Process *curr_p = (Process*)malloc(sizeof(Process));
                 curr_p = head->process;
-                // printf("%d\n",curr_p->pid);
                 int arrival_check = arr_check(curr_p);
-                if(arrival_check == -1) {
-                    // printf("%d not arrive \n",curr_p->pid);
-                    break;
-                }
+                if(arrival_check == -1) break;
                 else{
-                    
                     sch = 1;
                     int index = curr_p -> cycle_index;
                     scheduling(i,index,curr_p);
                     break;
-                    // if (wake ==1){
-                    //     for(int i=0;i<4;i++){
-                    //         Queue *h = (Queue*)malloc(sizeof(Queue));
-                    //         h = Ready_Queue[i];
-                    //         while(h->next!=NULL){
-                                
-                    //             h = h->next;
-                    //             // printf("RQ%d : %d\n",i,h->process->pid);
-                    //         }
-     
-                    //      }
-                    // }
-                    if(complete_num == process_num) break;
-                    // if(wake == 1) break;
                 }
-                // free(head);
-                
             }
-            // printf("%d\n",wake);
             if(complete_num == process_num) break;
-            // if(wake == 1) break; 
             if(sch == 1) break;
         }
-        // printf("%d",complete_num);
-        if(complete_num == process_num) break;
-        // break;
+        if(complete_num == process_num) break;  
     }
     print_time();
 }
-void scheduling(int num,int index,Process *p){
+void scheduling(int queue_num,int index,Process *p){
     int start_time = global_time;
     int schedule_time;
     int time_quantum;
     int wake;
     int curr_q = p->init_q;
-    if(num<3){
-        time_quantum = pow(2,num);
+    if(queue_num<3){
+        time_quantum = pow(2,queue_num);
         schedule_time = time_quantum;
     }
     else{
@@ -333,14 +278,12 @@ void scheduling(int num,int index,Process *p){
         p->arr_time = global_time;
         push(p,0);
         
-        wake_check(num);
+        wake_check(queue_num);
     }
     else{
-        // p->arr_time += p->arr_burst[index*2];
-        // p->cycle_index+=1;
+        
         int cpu_time = p->arr_burst[index*2];
         global_time += cpu_time;
-        // int io_check = io_check();
         if(p->cycle_index+1 >= p->cycles) {
             complete_num +=1;
             p->complete_time = global_time;
@@ -352,19 +295,15 @@ void scheduling(int num,int index,Process *p){
             push(p,1);
         }
         
-        wake_check(num);
+        wake_check(queue_num);
     }
     int finish_time = global_time;
     print_gantt(start_time,finish_time,p->pid,curr_q);
     
-    // return wake;
 }
 void print_gantt(int start_time,int finish_time,int pid,int queue){
     int schedule_time = finish_time - start_time;
     printf("[ ");
-    // for(int i=0;i<schedule_time;i++){
-    //     printf("-");
-    // }
     printf("P%d ( %ds ~ %ds ) at Q%d",pid,start_time,finish_time,queue);
     printf(" ]  \n");
 }
