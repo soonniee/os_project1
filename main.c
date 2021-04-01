@@ -82,7 +82,7 @@ void set_process(){
     int pid,arr_time,init_q,cycles;
     int size_arr;
     FILE *fp;
-    fp = fopen("input4.txt","r");
+    fp = fopen("input.txt","r");
     
     fscanf(fp,"%d",&process_num);
     
@@ -139,11 +139,7 @@ void set_process(){
     
 }
 
-int main(){
-    set_process();
-    simulator();
-    return 0;
-}
+
 int arr_check(Process *p){
     if(global_time >= p->arr_time){
         return 1;
@@ -219,41 +215,11 @@ void min_wakeup(){
     }
     printf("[ Waiting ( %ds ~ %ds ) ]\n",wait_start_time,global_time);
 }
-void simulator(){
-    scheduling(Process_arr[0]->init_q,Process_arr[0]->cycle_index,Process_arr[0]);
-    int empty = 0;
-    while(1){
-        if(empty == 1) min_wakeup();
-        
-        for(int i=0;i<4;i++){
-            int wake=0;
-            int sch = 0;
-            while(1){
-                Queue *head = (Queue*)malloc(sizeof(Queue));
-                head = Ready_Queue[i];
-                head = head ->next;
-                if(head== NULL){
-                    empty = 1;
-                    break;
-                }
-                empty = 0;
-                Process *curr_p = (Process*)malloc(sizeof(Process));
-                curr_p = head->process;
-                int arrival_check = arr_check(curr_p);
-                if(arrival_check == -1) break;
-                else{
-                    sch = 1;
-                    int index = curr_p -> cycle_index;
-                    scheduling(i,index,curr_p);
-                    break;
-                }
-            }
-            if(complete_num == process_num) break;
-            if(sch == 1) break;
-        }
-        if(complete_num == process_num) break;  
-    }
-    print_time();
+void print_gantt(int start_time,int finish_time,int pid,int queue){
+    int schedule_time = finish_time - start_time;
+    printf("[ ");
+    printf("P%d ( %ds ~ %ds ) at Q%d",pid,start_time,finish_time,queue);
+    printf(" ]  \n");
 }
 void scheduling(int queue_num,int index,Process *p){
     int start_time = global_time;
@@ -301,12 +267,7 @@ void scheduling(int queue_num,int index,Process *p){
     print_gantt(start_time,finish_time,p->pid,curr_q);
     
 }
-void print_gantt(int start_time,int finish_time,int pid,int queue){
-    int schedule_time = finish_time - start_time;
-    printf("[ ");
-    printf("P%d ( %ds ~ %ds ) at Q%d",pid,start_time,finish_time,queue);
-    printf(" ]  \n");
-}
+
 void print_time(){
     int sum_tt=0;
     int sum_wt=0;
@@ -324,3 +285,45 @@ void print_time(){
     printf("Mean of All Processes's Turnaround Time : %.2fs\n",mean_tt);
     printf("Mean of All Processes's Waiting Time : %.2fs\n",mean_wt);
 }
+void simulator(){
+    scheduling(Process_arr[0]->init_q,Process_arr[0]->cycle_index,Process_arr[0]);
+    int empty = 0;
+    while(1){
+        if(empty == 1) min_wakeup();
+        
+        for(int i=0;i<4;i++){
+            int wake=0;
+            int sch = 0;
+            while(1){
+                Queue *head = (Queue*)malloc(sizeof(Queue));
+                head = Ready_Queue[i];
+                head = head ->next;
+                if(head== NULL){
+                    empty = 1;
+                    break;
+                }
+                empty = 0;
+                Process *curr_p = (Process*)malloc(sizeof(Process));
+                curr_p = head->process;
+                int arrival_check = arr_check(curr_p);
+                if(arrival_check == -1) break;
+                else{
+                    sch = 1;
+                    int index = curr_p -> cycle_index;
+                    scheduling(i,index,curr_p);
+                    break;
+                }
+            }
+            if(complete_num == process_num) break;
+            if(sch == 1) break;
+        }
+        if(complete_num == process_num) break;  
+    }
+    print_time();
+}
+int main(){
+    set_process();
+    simulator();
+    return 0;
+}
+
